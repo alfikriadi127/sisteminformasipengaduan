@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistem Pengaduan Pelanggan Pelabuhan</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+background:#f4f6f9;
+}
+
+header{
+background:#005b96;
+color:white;
+padding:20px;
+text-align:center;
+}
+
+.container{
+width:90%;
+max-width:1100px;
+margin:20px auto;
+}
+
+.card{
+background:white;
+padding:20px;
+margin-bottom:20px;
+border-radius:10px;
+box-shadow:0 2px 10px rgba(0,0,0,0.1);
+}
+
+h2{
+margin-bottom:15px;
+color:#005b96;
+}
+
+label{
+display:block;
+margin-top:10px;
+font-weight:bold;
+}
+
+input,select,textarea{
+width:100%;
+padding:10px;
+margin-top:5px;
+border:1px solid #ccc;
+border-radius:5px;
+}
+
+button{
+margin-top:15px;
+padding:10px;
+border:none;
+background:#005b96;
+color:white;
+cursor:pointer;
+border-radius:5px;
+}
+
+button:hover{
+background:#003f6b;
+}
+
+.ticket{
+background:#eef6ff;
+padding:15px;
+border-left:5px solid #005b96;
+margin-bottom:15px;
+border-radius:5px;
+}
+
+.status-menunggu{
+color:orange;
+font-weight:bold;
+}
+
+.status-diproses{
+color:blue;
+font-weight:bold;
+}
+
+.status-selesai{
+color:green;
+font-weight:bold;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:10px;
+}
+
+table th,table td{
+border:1px solid #ddd;
+padding:10px;
+text-align:center;
+}
+
+table th{
+background:#005b96;
+color:white;
+}
+
+.dashboard{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+gap:15px;
+margin-bottom:20px;
+}
+
+.box{
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 2px 10px rgba(0,0,0,0.1);
+text-align:center;
+}
+
+.box h3{
+color:#005b96;
+}
+
+.box p{
+font-size:28px;
+font-weight:bold;
+margin-top:10px;
+}
+</style>
+
+</head>
+<body>
+
+<header>
+<h1>SISTEM LAYANAN PENGADUAN PELANGGAN PELABUHAN</h1>
+</header>
+
+<div class="container">
+
+<div class="dashboard">
+<div class="box">
+<h3>Total Pengaduan</h3>
+<p id="total">0</p>
+</div>
+
+<div class="box">
+<h3>Menunggu</h3>
+<p id="menunggu">0</p>
+</div>
+
+<div class="box">
+<h3>Diproses</h3>
+<p id="diproses">0</p>
+</div>
+
+<div class="box">
+<h3>Selesai</h3>
+<p id="selesai">0</p>
+</div>
+</div>
+
+<div class="card">
+
+<h2>Form Pengaduan</h2>
+
+<form id="formPengaduan">
+
+<label>Nama Pelapor</label>
+<input type="text" id="nama" required>
+
+<label>Email</label>
+<input type="email" id="email" required>
+
+<label>Kategori Pengaduan</label>
+<select id="kategori" required>
+<option value="">Pilih Kategori</option>
+<option>Pelayanan Kapal</option>
+<option>Fasilitas Pelabuhan</option>
+<option>Keamanan</option>
+<option>Administrasi</option>
+<option>Lainnya</option>
+</select>
+
+<label>Isi Pengaduan</label>
+<textarea id="isi" rows="5" required></textarea>
+
+<button type="submit">
+Kirim Pengaduan
+</button>
+
+</form>
+
+</div>
+
+<div class="card">
+
+<h2>Daftar Pengaduan</h2>
+
+<div id="listPengaduan"></div>
+
+</div>
+
+</div>
+
+<script>
+
+const form=document.getElementById("formPengaduan");
+const list=document.getElementById("listPengaduan");
+
+let pengaduan=
+JSON.parse(localStorage.getItem("pengaduanPelabuhan")) || [];
+
+render();
+
+form.addEventListener("submit",function(e){
+
+e.preventDefault();
+
+const data={
+id:"PLB-"+Date.now(),
+nama:document.getElementById("nama").value,
+email:document.getElementById("email").value,
+kategori:document.getElementById("kategori").value,
+isi:document.getElementById("isi").value,
+status:"Menunggu",
+tanggal:new Date().toLocaleString("id-ID")
+};
+
+pengaduan.push(data);
+
+localStorage.setItem(
+"pengaduanPelabuhan",
+JSON.stringify(pengaduan)
+);
+
+form.reset();
+
+render();
+
+alert("Pengaduan berhasil dikirim.");
+});
+
+function render(){
+
+list.innerHTML="";
+
+let total=pengaduan.length;
+let menunggu=0;
+let diproses=0;
+let selesai=0;
+
+pengaduan.forEach((item,index)=>{
+
+if(item.status==="Menunggu") menunggu++;
+if(item.status==="Diproses") diproses++;
+if(item.status==="Selesai") selesai++;
+
+let warnaStatus="status-menunggu";
+
+if(item.status==="Diproses")
+warnaStatus="status-diproses";
+
+if(item.status==="Selesai")
+warnaStatus="status-selesai";
+
+list.innerHTML+=`
+<div class="ticket">
+
+<h3>${item.id}</h3>
+
+<p><b>Tanggal :</b> ${item.tanggal}</p>
+
+<p><b>Nama :</b> ${item.nama}</p>
+
+<p><b>Email :</b> ${item.email}</p>
+
+<p><b>Kategori :</b> ${item.kategori}</p>
+
+<p><b>Pengaduan :</b> ${item.isi}</p>
+
+<p class="${warnaStatus}">
+Status : ${item.status}
+</p>
+
+<button onclick="ubahStatus(${index})">
+Ubah Status
+</button>
+
+<button onclick="hapusPengaduan(${index})">
+Hapus
+</button>
+
+</div>
+`;
+});
+
+document.getElementById("total").innerText=total;
+document.getElementById("menunggu").innerText=menunggu;
+document.getElementById("diproses").innerText=diproses;
+document.getElementById("selesai").innerText=selesai;
+}
+
+function ubahStatus(index){
+
+let status=prompt(
+"Masukkan status:\nMenunggu\nDiproses\nSelesai"
+);
+
+if(status){
+
+pengaduan[index].status=status;
+
+localStorage.setItem(
+"pengaduanPelabuhan",
+JSON.stringify(pengaduan)
+);
+
+render();
+}
+}
+
+function hapusPengaduan(index){
+
+if(confirm("Hapus pengaduan ini?")){
+
+pengaduan.splice(index,1);
+
+localStorage.setItem(
+"pengaduanPelabuhan",
+JSON.stringify(pengaduan)
+);
+
+render();
+}
+}
+
+</script>
+
+</body>
+</html>
